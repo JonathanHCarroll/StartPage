@@ -1,0 +1,19 @@
+name = "startpage"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "./public"
+
+# Create with: wrangler kv namespace create STARTPAGE_CACHE
+# Then paste the id below (and preview_id for local dev).
+[[kv_namespaces]]
+binding = "CACHE"
+id = "0f3d071a73bd46c3bda1b1c5688fc804"
+preview_id = "f009682451254b31949817e4a0701f89"
+
+[vars]
+COLLECTION_IDS = "54759553"
+BOOKMARKS_PER_PAGE = "50"
+CACHE_MINUTES = "30"
+PAGE_TITLE = "Start"
+
+# Secret (set via dashboard or `wrangler secret put RAINDROP_ACCESS_TOKEN`):
+# RAINDROP_ACCESS_TOKEN

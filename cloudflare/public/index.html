@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Start</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1 class="greeting" id="greeting">Hello</h1>
+      <p class="datetime" id="datetime"></p>
+      <form class="search-wrap" action="https://www.google.com/search" method="get" target="_top" role="search">
+        <input type="search" name="q" id="search" placeholder="Search the web…" autocomplete="off" spellcheck="false" aria-label="Search" required>
+      </form>
+    </header>
+
+    <div class="error-banner" id="error-banner" role="alert" hidden>
+      <strong>Could not load bookmarks</strong>
+      <span id="error-message"></span>
+    </div>
+
+    <main class="collections" id="collections-main">
+      <section class="collection" id="collection-view" aria-live="polite" hidden>
+        <div class="collection-picker" id="collection-picker">
+          <button type="button" class="collection-trigger" id="collection-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="collection-menu">
+            <span class="collection-trigger-label">
+              <img class="collection-icon" src="/bookmark.png" alt="" width="14" height="14">
+              <span class="collection-name" id="collection-name"></span>
+            </span>
+            <span class="collection-chevron" aria-hidden="true"></span>
+          </button>
+          <ul class="collection-menu" id="collection-menu" role="listbox" hidden></ul>
+        </div>
+        <div id="bookmark-mount">
+          <p class="empty-state collection-loading">Loading…</p>
+        </div>
+      </section>
+      <p class="empty-state" id="config-empty" hidden>No collections configured. Set COLLECTION_IDS in Worker environment.</p>
+    </main>
+
+    <footer>
+      <span id="footer-updated"></span>
+      <span id="footer-sep" hidden> · </span>
+      <a href="https://app.raindrop.io/">Edit bookmarks</a>
+      · <button type="button" class="footer-link" id="refresh-cache">Refresh</button>
+    </footer>
+  </div>
+
+  <script src="/app.js?v=6" defer></script>
+</body>
+</html>

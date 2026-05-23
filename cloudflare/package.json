@@ -1,0 +1,11 @@
+{
+  "name": "startpage-cloudflare",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev public --port 8788 --ip 127.0.0.1",
+    "deploy": "wrangler pages deploy public --project-name=startpage"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

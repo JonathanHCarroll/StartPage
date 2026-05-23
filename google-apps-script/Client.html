@@ -1,0 +1,342 @@
+<script>
+  (function () {
+    // sessionStorage is per-tab so each new tab starts on defaultCollectionId.
+    var STORAGE_KEY = 'startpage_collection_id';
+
+    function pad(n) {
+      return n < 10 ? '0' + n : String(n);
+    }
+
+    function updateClock() {
+      var now = new Date();
+      var greetingEl = document.getElementById('greeting');
+      var datetimeEl = document.getElementById('datetime');
+
+      if (!greetingEl || !datetimeEl) return;
+
+      var hour = now.getHours();
+      var greeting;
+      if (hour < 12) greeting = 'Good morning';
+      else if (hour < 17) greeting = 'Good afternoon';
+      else greeting = 'Good evening';
+
+      greetingEl.textContent = greeting;
+
+      var options = { weekday: 'long', month: 'long', day: 'numeric' };
+      var dateStr = now.toLocaleDateString(undefined, options);
+      var timeStr = pad(now.getHours()) + ':' + pad(now.getMinutes());
+      datetimeEl.textContent = dateStr + ' · ' + timeStr;
+    }
+
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    var refreshBtn = document.getElementById('refresh-cache');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', function () {
+        if (refreshBtn.disabled) return;
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = 'Refreshing…';
+        google.script.run
+          .withSuccessHandler(function () {
+            location.reload();
+          })
+          .withFailureHandler(function (err) {
+            refreshBtn.disabled = false;
+            refreshBtn.textContent = 'Refresh';
+            alert(err.message || 'Could not refresh cache');
+          })
+          .clearStartPageCache();
+      });
+    }
+
+    function openSearch(query) {
+      var url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+      var target = window.top || window;
+      try {
+        target.location.href = url;
+      } catch (e) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    }
+
+    var searchForm = document.querySelector('.search-wrap');
+    if (searchForm) {
+      searchForm.addEventListener('submit', function (e) {
+        var input = searchForm.querySelector('input[name="q"]');
+        var query = input && input.value.trim();
+        if (!query) {
+          e.preventDefault();
+          return;
+        }
+        e.preventDefault();
+        openSearch(query);
+      });
+    }
+
+    function faviconUrl(domain) {
+      return 'https://www.google.com/s2/favicons?domain=' +
+        encodeURIComponent(domain || '') + '&sz=128';
+    }
+
+    function bindFaviconErrors(root) {
+      root.querySelectorAll('.app-icon img').forEach(function (img) {
+        if (img.dataset.bound) return;
+        img.dataset.bound = '1';
+        img.addEventListener('error', function () {
+          img.style.visibility = 'hidden';
+        });
+      });
+    }
+
+    function countLabel(loaded, total) {
+      if (total > loaded) return loaded + ' / ' + total;
+      return String(loaded);
+    }
+
+    function renderBookmarks(container, bookmarks) {
+      container.innerHTML = '';
+      if (!bookmarks.length) {
+        var empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = 'No bookmarks in this collection';
+        container.appendChild(empty);
+        return;
+      }
+
+      var list = document.createElement('ul');
+      list.className = 'bookmark-grid';
+
+      bookmarks.forEach(function (b) {
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.className = 'bookmark-app';
+        a.href = b.link;
+        a.target = '_top';
+        a.rel = 'noreferrer';
+        a.title = b.excerpt || b.title;
+
+        var iconWrap = document.createElement('span');
+        iconWrap.className = 'app-icon';
+        var img = document.createElement('img');
+        img.src = faviconUrl(b.domain);
+        img.alt = '';
+        img.width = 64;
+        img.height = 64;
+        img.loading = 'lazy';
+        iconWrap.appendChild(img);
+
+        var label = document.createElement('span');
+        label.className = 'app-label';
+        label.textContent = b.title;
+
+        a.appendChild(iconWrap);
+        a.appendChild(label);
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+
+      container.appendChild(list);
+      bindFaviconErrors(container);
+    }
+
+    function initCollectionSwitcher() {
+      var dataEl = document.getElementById('startpage-data');
+      var mount = document.getElementById('bookmark-mount');
+      var picker = document.getElementById('collection-picker');
+      var trigger = document.getElementById('collection-trigger');
+      var menu = document.getElementById('collection-menu');
+      var nameEl = document.getElementById('collection-name');
+      var view = document.getElementById('collection-view');
+
+      if (!dataEl || !mount || !picker || !trigger || !menu) return;
+
+      var payload = JSON.parse(dataEl.textContent);
+      var preloaded = payload.collections || [];
+      var loadedById = {};
+
+      preloaded.forEach(function (col) {
+        loadedById[col.id] = col;
+      });
+
+      var allCollections = payload.allCollections || [];
+      if (!allCollections.length && preloaded.length) {
+        allCollections = preloaded.map(function (col) {
+          return {
+            id: col.id,
+            title: col.title,
+            color: col.color,
+            count: col.count
+          };
+        });
+      }
+
+      var defaultId = payload.defaultCollectionId;
+      if (defaultId == null && preloaded.length) {
+        defaultId = preloaded[0].id;
+      }
+
+      function hasCollectionId(id) {
+        if (id == null || isNaN(id)) return false;
+        if (loadedById[id]) return true;
+        return allCollections.some(function (c) { return c.id === id; });
+      }
+
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+      var stored = sessionStorage.getItem(STORAGE_KEY);
+      var activeId = stored ? parseInt(stored, 10) : defaultId;
+      if (!hasCollectionId(activeId)) {
+        activeId = defaultId;
+      }
+      if (!hasCollectionId(activeId) && preloaded.length) {
+        activeId = preloaded[0].id;
+      }
+
+      var menuOpen = false;
+      var loading = false;
+
+      function metaFor(id) {
+        if (loadedById[id]) return loadedById[id];
+        return allCollections.filter(function (c) { return c.id === id; })[0];
+      }
+
+      function setOpen(open) {
+        menuOpen = open;
+        trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        menu.hidden = !open;
+      }
+
+      function updateHeader(col) {
+        nameEl.textContent = col.title;
+        if (view) view.style.setProperty('--collection-color', col.color || '');
+      }
+
+      function renderMenu() {
+        menu.innerHTML = '';
+        allCollections.forEach(function (c) {
+          var li = document.createElement('li');
+          li.setAttribute('role', 'option');
+          li.dataset.collectionId = String(c.id);
+          if (c.id === activeId) {
+            li.setAttribute('aria-selected', 'true');
+            li.className = 'is-active';
+          }
+
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'collection-option';
+
+          var icon = document.createElement('img');
+          icon.className = 'collection-option-icon';
+          icon.src = 'https://startpage-72s.pages.dev/bookmark.png';
+          icon.alt = '';
+          icon.width = 14;
+          icon.height = 14;
+
+          var label = document.createElement('span');
+          label.className = 'collection-option-title';
+          label.textContent = c.title;
+
+          var count = document.createElement('span');
+          count.className = 'collection-option-count';
+          count.textContent = String(c.count || 0);
+
+          btn.appendChild(icon);
+          btn.appendChild(label);
+          btn.appendChild(count);
+          btn.addEventListener('click', function () {
+            selectCollection(c.id);
+          });
+
+          li.appendChild(btn);
+          menu.appendChild(li);
+        });
+      }
+
+      function showLoading() {
+        mount.innerHTML = '<p class="empty-state collection-loading">Loading…</p>';
+      }
+
+      function showError(message) {
+        mount.innerHTML = '';
+        var p = document.createElement('p');
+        p.className = 'empty-state collection-error';
+        p.textContent = message;
+        mount.appendChild(p);
+      }
+
+      function displayCollection(col) {
+        activeId = col.id;
+        sessionStorage.setItem(STORAGE_KEY, String(activeId));
+        updateHeader(col);
+        renderBookmarks(mount, col.bookmarks || []);
+        renderMenu();
+      }
+
+      function selectCollection(id, force) {
+        if (id == null || isNaN(id)) {
+          if (defaultId != null) id = defaultId;
+          else if (preloaded.length) id = preloaded[0].id;
+          else return;
+        }
+
+        if (loading) {
+          setOpen(false);
+          return;
+        }
+
+        if (!force && id === activeId) {
+          setOpen(false);
+          return;
+        }
+
+        setOpen(false);
+
+        if (loadedById[id]) {
+          displayCollection(loadedById[id]);
+          return;
+        }
+
+        loading = true;
+        showLoading();
+        trigger.disabled = true;
+
+        google.script.run
+          .withSuccessHandler(function (col) {
+            loading = false;
+            trigger.disabled = false;
+            loadedById[col.id] = col;
+            displayCollection(col);
+          })
+          .withFailureHandler(function (err) {
+            loading = false;
+            trigger.disabled = false;
+            showError(err.message || 'Could not load collection');
+          })
+          .getCollectionData(id);
+      }
+
+      trigger.addEventListener('click', function () {
+        setOpen(!menuOpen);
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!picker.contains(e.target)) setOpen(false);
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') setOpen(false);
+      });
+
+      renderMenu();
+
+      if (loadedById[activeId]) {
+        displayCollection(loadedById[activeId]);
+      } else {
+        selectCollection(activeId, true);
+      }
+    }
+
+    initCollectionSwitcher();
+  })();
+</script>

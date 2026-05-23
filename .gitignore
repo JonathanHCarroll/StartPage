@@ -1,5 +1,12 @@
 .clasp.json
 .clasprc.json
+# Duplicate files created by `clasp pull` on V8 projects — keep .gs only
+google-apps-script/Code.js
+google-apps-script/Config.js
+google-apps-script/Raindrop.js
 node_modules/
 .DS_Store
 *.log
+cloudflare/node_modules/
+cloudflare/.dev.vars
+cloudflare/.wrangler/
