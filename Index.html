@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title><?= pageTitle ?></title>
+  <?!= include('Styles'); ?>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1 class="greeting" id="greeting">Hello</h1>
+      <p class="datetime" id="datetime"></p>
+      <div class="search-wrap">
+        <input type="search" id="search" placeholder="Search the web…" autocomplete="off" spellcheck="false" aria-label="Search">
+      </div>
+    </header>
+
+    <? if (error) { ?>
+    <div class="error-banner" role="alert">
+      <strong>Could not load bookmarks</strong>
+      <?= error ?>
+    </div>
+    <? } ?>
+
+    <main class="collections">
+      <? var cols = data.collections || []; ?>
+      <? if (!cols.length && !error) { ?>
+      <p class="empty-state">No collections configured. Set COLLECTION_IDS in Script properties.</p>
+      <? } ?>
+
+      <? for (var i = 0; i < cols.length; i++) {
+           var col = cols[i];
+           var bookmarks = col.bookmarks || [];
+      ?>
+      <section class="collection" style="--collection-color: <?= col.color ?>">
+        <div class="collection-header">
+          <h2 class="collection-title"><?= col.title ?></h2>
+          <span class="collection-count"><?= bookmarks.length ?><? if (col.count > bookmarks.length) { ?> / <?= col.count ?><? } ?></span>
+        </div>
+        <? if (!bookmarks.length) { ?>
+        <p class="empty-state">No bookmarks in this collection</p>
+        <? } else { ?>
+        <ul class="bookmark-list">
+          <? for (var j = 0; j < bookmarks.length; j++) {
+               var b = bookmarks[j];
+               var favicon = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(b.domain || '') + '&sz=32';
+          ?>
+          <li>
+            <a href="<?= b.link ?>" target="_blank" rel="noopener noreferrer" title="<?= b.excerpt || b.title ?>">
+              <img class="favicon" src="<?= favicon ?>" alt="" width="18" height="18" loading="lazy">
+              <span class="bookmark-text">
+                <span class="bookmark-title"><?= b.title ?></span>
+                <? if (b.domain) { ?>
+                <span class="bookmark-domain"><?= b.domain ?></span>
+                <? } ?>
+              </span>
+            </a>
+          </li>
+          <? } ?>
+        </ul>
+        <? } ?>
+      </section>
+      <? } ?>
+    </main>
+
+    <footer>
+      <? if (data.fetchedAt) { ?>
+      Updated <?= data.fetchedAt ?>
+      <? } ?>
+      · Powered by <a href="https://raindrop.io" target="_blank" rel="noopener">Raindrop.io</a>
+    </footer>
+  </div>
+
+  <?!= include('Client'); ?>
+</body>
+</html>

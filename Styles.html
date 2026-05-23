@@ -1,0 +1,225 @@
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-hover: #242836;
+    --text: #e8eaed;
+    --text-muted: #9aa0a6;
+    --accent: #5c7cfa;
+    --border: #2d3142;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    --radius: 12px;
+    --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f0f2f5;
+      --surface: #ffffff;
+      --surface-hover: #f5f6f8;
+      --text: #1a1a1a;
+      --text-muted: #5f6368;
+      --border: #e0e3e7;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 3rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .greeting {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+  }
+
+  .datetime {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-top: 0.35rem;
+  }
+
+  .search-wrap {
+    max-width: 560px;
+    margin: 1.5rem auto 0;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    box-shadow: var(--shadow);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .search-wrap input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+
+  .error-banner {
+    background: #3d1f1f;
+    color: #ffb4b4;
+    border: 1px solid #6b2c2c;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+  }
+
+  @media (prefers-color-scheme: light) {
+    .error-banner {
+      background: #fde8e8;
+      color: #9b1c1c;
+      border-color: #f5c6c6;
+    }
+  }
+
+  .error-banner strong {
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .collections {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .collection {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .collection-header {
+    padding: 1rem 1.15rem;
+    border-bottom: 3px solid var(--collection-color, var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .collection-title {
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .collection-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .bookmark-list {
+    list-style: none;
+    padding: 0.5rem 0;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 420px;
+  }
+
+  .bookmark-list li a {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 1.15rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.12s;
+  }
+
+  .bookmark-list li a:hover,
+  .bookmark-list li a:focus-visible {
+    background: var(--surface-hover);
+    outline: none;
+  }
+
+  .favicon {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    background: var(--border);
+  }
+
+  .bookmark-text {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .bookmark-title {
+    display: block;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bookmark-domain {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .empty-state {
+    padding: 2rem 1.15rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 2.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+</style>
