@@ -31,6 +31,8 @@ npm run deploy
 
 Environment: `RAINDROP_ACCESS_TOKEN` (secret), `COLLECTION_IDS`, and optional vars in `wrangler.toml` / dashboard.
 
+Optional **`ICON_OVERRIDES`** — JSON map of Raindrop bookmark id or domain → icon URL or path (e.g. `{"github.com":"/icons/github.png"}`). Put files in `cloudflare/public/icons/`.
+
 ## Quick start (Google Apps Script)
 
 See **[google-apps-script/README.md](google-apps-script/README.md)**.

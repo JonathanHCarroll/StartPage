@@ -33,6 +33,15 @@ In the Apps Script editor: **Project Settings** → **Script properties**:
 | `BOOKMARKS_PER_PAGE` | No | `50` (max 50) |
 | `CACHE_MINUTES` | No | `15` |
 | `PAGE_TITLE` | No | `Start` |
+| `ICON_OVERRIDES` | No | JSON map — bookmark id or domain → icon URL/path (see below) |
+
+**`ICON_OVERRIDES`** — optional JSON object. Keys are Raindrop bookmark ids (as strings) or hostnames; values are icon URLs or paths under `public/icons/`:
+
+```json
+{"github.com":"/icons/github.png","8492393":"https://example.com/my-icon.png"}
+```
+
+If a bookmark matches, that icon is used instead of the Google favicon lookup.
 
 Run `listRaindropCollections()` in the editor to list collection IDs.
 

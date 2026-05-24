@@ -16,14 +16,18 @@ import {
  */
 export async function getStartPageData(env, kv) {
   const config = getConfig(env);
+  const clientConfig = {
+    pageTitle: config.pageTitle,
+    iconOverrides: config.iconOverrides
+  };
   const cached = await readStartPageData(kv);
   if (cached) {
-    return Object.assign({}, cached, { pageTitle: config.pageTitle });
+    return Object.assign({}, cached, clientConfig);
   }
 
   const data = await fetchStartPageData(env, config);
   await writeStartPageData(kv, data, config.cacheSeconds);
-  return Object.assign({}, data, { pageTitle: config.pageTitle });
+  return Object.assign({}, data, clientConfig);
 }
 
 /**

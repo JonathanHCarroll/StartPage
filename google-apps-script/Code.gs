@@ -5,6 +5,17 @@ var CACHE_ALL_COLLECTIONS_KEY = 'startpage_all_cols_v3';
 var CACHE_COLLECTION_PREFIX = 'startpage_col_';
 var CACHE_MAX_VALUE_BYTES = 102400;
 
+function withClientConfig_(data) {
+  return {
+    allCollections: data.allCollections,
+    defaultCollectionId: data.defaultCollectionId,
+    collections: data.collections,
+    fetchedAt: data.fetchedAt,
+    pageTitle: CONFIG.getPageTitle(),
+    iconOverrides: CONFIG.getIconOverrides()
+  };
+}
+
 /**
  * Web app entry point — deploy as web app and use this URL as your browser start page.
  */
@@ -15,7 +26,7 @@ function doGet() {
   try {
     var data = getStartPageData_();
     template.data = data;
-    template.jsonData = JSON.stringify(data).replace(/</g, '\\u003c');
+    template.jsonData = JSON.stringify(withClientConfig_(data)).replace(/</g, '\\u003c');
     template.error = null;
   } catch (err) {
     template.data = {

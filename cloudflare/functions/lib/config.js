@@ -1,4 +1,19 @@
 /**
+ * @param {string} raw
+ * @returns {Record<string, string>}
+ */
+export function parseIconOverrides(raw) {
+  if (!raw || !String(raw).trim()) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch (e) { /* ignore invalid JSON */ }
+  return {};
+}
+
+/**
  * @param {Record<string, string>} env
  */
 export function getConfig(env) {
@@ -19,6 +34,7 @@ export function getConfig(env) {
     defaultCollectionId: collectionIds.length ? collectionIds[0] : null,
     bookmarksPerPage: Math.min(50, Math.max(1, isNaN(bookmarksPerPage) ? 50 : bookmarksPerPage)),
     cacheSeconds: Math.min(21600, Math.max(60, (isNaN(cacheMinutes) ? 15 : cacheMinutes) * 60)),
-    pageTitle: env.PAGE_TITLE || 'Start'
+    pageTitle: env.PAGE_TITLE || 'Start',
+    iconOverrides: parseIconOverrides(env.ICON_OVERRIDES)
   };
 }

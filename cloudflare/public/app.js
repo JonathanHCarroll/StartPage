@@ -69,9 +69,22 @@
     });
   }
 
+  var iconOverrides = {};
+
   function faviconUrl(domain) {
     return 'https://www.google.com/s2/favicons?domain=' +
       encodeURIComponent(domain || '') + '&sz=128';
+  }
+
+  function bookmarkIconUrl(b) {
+    if (b.id != null && iconOverrides[String(b.id)]) {
+      return iconOverrides[String(b.id)];
+    }
+    var domain = b.domain || '';
+    if (domain && iconOverrides[domain]) {
+      return iconOverrides[domain];
+    }
+    return faviconUrl(domain);
   }
 
   function bindFaviconErrors(root) {
@@ -114,7 +127,7 @@
       var iconWrap = document.createElement('span');
       iconWrap.className = 'app-icon';
       var img = document.createElement('img');
-      img.src = faviconUrl(b.domain);
+      img.src = bookmarkIconUrl(b);
       img.alt = '';
       img.width = 64;
       img.height = 64;
@@ -211,6 +224,7 @@
     }
 
     function applyPayload(payload, resetToDefault) {
+      iconOverrides = payload.iconOverrides || {};
       syncPayload(payload);
       if (resetToDefault) {
         sessionStorage.removeItem(STORAGE_KEY);

@@ -11,6 +11,8 @@
  *   BOOKMARKS_PER_PAGE — Max bookmarks per collection (1–50, default 50)
  *   CACHE_MINUTES      — How long to cache API responses (default 15)
  *   PAGE_TITLE         — Browser tab title (default "Start")
+ *   ICON_OVERRIDES     — JSON map of bookmark id or domain → icon URL/path
+ *                        e.g. {"github.com":"/icons/github.png","8492393":"https://..."}
  */
 var CONFIG = (function () {
   var props = PropertiesService.getScriptProperties();
@@ -24,6 +26,18 @@ var CONFIG = (function () {
     var parsed = parseInt(get_(key, String(defaultValue)), 10);
     if (isNaN(parsed)) return defaultValue;
     return Math.min(max, Math.max(min, parsed));
+  }
+
+  function getIconOverrides_() {
+    var raw = get_('ICON_OVERRIDES', '');
+    if (!raw) return {};
+    try {
+      var parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !(parsed instanceof Array)) {
+        return parsed;
+      }
+    } catch (e) { /* ignore invalid JSON */ }
+    return {};
   }
 
   return {
@@ -61,6 +75,10 @@ var CONFIG = (function () {
 
     getPageTitle: function () {
       return get_('PAGE_TITLE', 'Start');
+    },
+
+    getIconOverrides: function () {
+      return getIconOverrides_();
     }
   };
 })();
