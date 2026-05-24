@@ -1,5 +1,6 @@
 (function () {
   var STORAGE_KEY = 'startpage_collection_id';
+  var VIEW_MODES_KEY = 'startpage_view_modes';
 
   function pad(n) {
     return n < 10 ? '0' + n : String(n);
@@ -102,7 +103,30 @@
     return String(loaded);
   }
 
-  function renderBookmarks(container, bookmarks) {
+  function loadViewModes() {
+    try {
+      var raw = localStorage.getItem(VIEW_MODES_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function getViewMode(collectionId) {
+    var modes = loadViewModes();
+    var mode = modes[String(collectionId)];
+    return mode === 'list' ? 'list' : 'grid';
+  }
+
+  function saveViewMode(collectionId, mode) {
+    try {
+      var modes = loadViewModes();
+      modes[String(collectionId)] = mode;
+      localStorage.setItem(VIEW_MODES_KEY, JSON.stringify(modes));
+    } catch (e) { /* ignore */ }
+  }
+
+  function renderBookmarks(container, bookmarks, viewMode) {
     container.innerHTML = '';
     if (!bookmarks.length) {
       var empty = document.createElement('p');
@@ -112,8 +136,9 @@
       return;
     }
 
+    var isList = viewMode === 'list';
     var list = document.createElement('ul');
-    list.className = 'bookmark-grid';
+    list.className = isList ? 'bookmark-list' : 'bookmark-grid';
 
     bookmarks.forEach(function (b) {
       var li = document.createElement('li');
@@ -129,8 +154,8 @@
       var img = document.createElement('img');
       img.src = bookmarkIconUrl(b);
       img.alt = '';
-      img.width = 64;
-      img.height = 64;
+      img.width = isList ? 32 : 64;
+      img.height = isList ? 32 : 64;
       img.loading = 'lazy';
       iconWrap.appendChild(img);
 
@@ -140,6 +165,14 @@
 
       a.appendChild(iconWrap);
       a.appendChild(label);
+
+      if (isList && b.domain) {
+        var domain = document.createElement('span');
+        domain.className = 'bookmark-domain';
+        domain.textContent = b.domain;
+        a.appendChild(domain);
+      }
+
       li.appendChild(a);
       list.appendChild(li);
     });
@@ -167,6 +200,8 @@
     var menu = document.getElementById('collection-menu');
     var nameEl = document.getElementById('collection-name');
     var view = document.getElementById('collection-view');
+    var viewGridBtn = document.getElementById('view-grid');
+    var viewListBtn = document.getElementById('view-list');
 
     if (!mount || !picker || !trigger || !menu) return;
 
@@ -177,6 +212,8 @@
     var allCollections = [];
     var defaultId = null;
     var activeId = null;
+    var activeCol = null;
+    var viewMode = 'grid';
     var menuOpen = false;
     var loading = false;
 
@@ -244,6 +281,27 @@
       menu.hidden = !open;
     }
 
+    function syncViewToggle() {
+      if (!viewGridBtn || !viewListBtn) return;
+      var isGrid = viewMode === 'grid';
+      viewGridBtn.classList.toggle('is-active', isGrid);
+      viewListBtn.classList.toggle('is-active', !isGrid);
+      viewGridBtn.setAttribute('aria-pressed', isGrid ? 'true' : 'false');
+      viewListBtn.setAttribute('aria-pressed', isGrid ? 'false' : 'true');
+    }
+
+    function setViewMode(mode, persist) {
+      if (mode !== 'grid' && mode !== 'list') return;
+      viewMode = mode;
+      syncViewToggle();
+      if (persist && activeId != null) {
+        saveViewMode(activeId, mode);
+      }
+      if (activeCol) {
+        renderBookmarks(mount, activeCol.bookmarks || [], viewMode);
+      }
+    }
+
     function updateHeader(col) {
       nameEl.textContent = col.title;
       if (view) view.style.setProperty('--collection-color', col.color || '');
@@ -305,9 +363,12 @@
 
     function displayCollection(col) {
       activeId = col.id;
+      activeCol = col;
       sessionStorage.setItem(STORAGE_KEY, String(activeId));
+      viewMode = getViewMode(activeId);
+      syncViewToggle();
       updateHeader(col);
-      renderBookmarks(mount, col.bookmarks || []);
+      renderBookmarks(mount, col.bookmarks || [], viewMode);
       renderMenu();
     }
 
@@ -355,6 +416,18 @@
       trigger.addEventListener('click', function () {
         setOpen(!menuOpen);
       });
+
+      if (viewGridBtn) {
+        viewGridBtn.addEventListener('click', function () {
+          setViewMode('grid', true);
+        });
+      }
+
+      if (viewListBtn) {
+        viewListBtn.addEventListener('click', function () {
+          setViewMode('list', true);
+        });
+      }
 
       document.addEventListener('click', function (e) {
         if (!picker.contains(e.target)) setOpen(false);

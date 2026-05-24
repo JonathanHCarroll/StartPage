@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Start</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=2">
 </head>
 <body>
   <div class="page">
@@ -23,15 +23,21 @@
 
     <main class="collections" id="collections-main">
       <section class="collection" id="collection-view" aria-live="polite" hidden>
-        <div class="collection-picker" id="collection-picker">
-          <button type="button" class="collection-trigger" id="collection-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="collection-menu">
-            <span class="collection-trigger-label">
-              <img class="collection-icon" src="/bookmark.png" alt="" width="14" height="14">
-              <span class="collection-name" id="collection-name"></span>
-            </span>
-            <span class="collection-chevron" aria-hidden="true"></span>
-          </button>
-          <ul class="collection-menu" id="collection-menu" role="listbox" hidden></ul>
+        <div class="collection-toolbar">
+          <div class="collection-picker" id="collection-picker">
+            <button type="button" class="collection-trigger" id="collection-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="collection-menu">
+              <span class="collection-trigger-label">
+                <img class="collection-icon" src="/bookmark.png" alt="" width="14" height="14">
+                <span class="collection-name" id="collection-name"></span>
+              </span>
+              <span class="collection-chevron" aria-hidden="true"></span>
+            </button>
+            <ul class="collection-menu" id="collection-menu" role="listbox" hidden></ul>
+          </div>
+          <div class="view-toggle" role="group" aria-label="Bookmark view">
+            <button type="button" class="view-toggle-btn is-active" id="view-grid" data-view="grid" aria-pressed="true">Grid</button>
+            <button type="button" class="view-toggle-btn" id="view-list" data-view="list" aria-pressed="false">List</button>
+          </div>
         </div>
         <div id="bookmark-mount">
           <p class="empty-state collection-loading">Loading…</p>
@@ -48,6 +54,6 @@
     </footer>
   </div>
 
-  <script src="/app.js?v=7" defer></script>
+  <script src="/app.js?v=8" defer></script>
 </body>
 </html>

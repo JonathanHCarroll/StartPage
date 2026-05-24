@@ -90,12 +90,29 @@ function fetchBookmarks_(collectionId) {
 }
 
 /**
+ * Raindrop may return the same collection from /collections and /collections/childrens.
+ * @param {Array<Object>} items
+ * @returns {Array<Object>}
+ */
+function dedupeCollectionsById_(items) {
+  var seen = {};
+  var out = [];
+  (items || []).forEach(function (c) {
+    if (!seen[c._id]) {
+      seen[c._id] = true;
+      out.push(c);
+    }
+  });
+  return out;
+}
+
+/**
  * @returns {Array<{ id: number, title: string, color: string, count: number }>}
  */
 function listAllCollections_() {
   var roots = raindropGet_('/collections');
   var children = raindropGet_('/collections/childrens');
-  var all = (roots.items || []).concat(children.items || []);
+  var all = dedupeCollectionsById_((roots.items || []).concat(children.items || []));
 
   return all.map(function (c) {
     return {
@@ -201,7 +218,7 @@ function listRaindropCollections() {
   var roots = raindropGet_('/collections');
   var children = raindropGet_('/collections/childrens');
 
-  var all = (roots.items || []).concat(children.items || []);
+  var all = dedupeCollectionsById_((roots.items || []).concat(children.items || []));
   Logger.log('Your Raindrop collections (' + all.length + ' total):');
   Logger.log(padRight_('ID', 12) + ' | Title');
   Logger.log('------------+------------------------------');

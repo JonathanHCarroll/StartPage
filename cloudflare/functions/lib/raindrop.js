@@ -91,9 +91,14 @@ export async function listAllCollections(token) {
     raindropGet(token, '/collections'),
     raindropGet(token, '/collections/childrens')
   ]);
-  const all = (roots.items || []).concat(children.items || []);
+  const byId = new Map();
+  (roots.items || []).concat(children.items || []).forEach(function (c) {
+    if (!byId.has(c._id)) {
+      byId.set(c._id, c);
+    }
+  });
 
-  return all.map(function (c) {
+  return Array.from(byId.values()).map(function (c) {
     return {
       id: c._id,
       title: c.title || ('Collection ' + c._id),

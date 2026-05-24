@@ -28,8 +28,9 @@
       <p class="empty-state">No collections configured. Set COLLECTION_IDS in Script properties.</p>
       <? } else if (!error) { ?>
       <section class="collection" id="collection-view" aria-live="polite">
-        <div class="collection-picker" id="collection-picker">
-          <button type="button" class="collection-trigger" id="collection-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="collection-menu">
+        <div class="collection-toolbar">
+          <div class="collection-picker" id="collection-picker">
+            <button type="button" class="collection-trigger" id="collection-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="collection-menu">
             <span class="collection-trigger-label">
               <img class="collection-icon" src="https://startpage-72s.pages.dev/bookmark.png" alt="" width="14" height="14">
               <span class="collection-name" id="collection-name"></span>
@@ -37,6 +38,11 @@
             <span class="collection-chevron" aria-hidden="true"></span>
           </button>
           <ul class="collection-menu" id="collection-menu" role="listbox" hidden></ul>
+          </div>
+          <div class="view-toggle" role="group" aria-label="Bookmark view">
+            <button type="button" class="view-toggle-btn is-active" id="view-grid" data-view="grid" aria-pressed="true">Grid</button>
+            <button type="button" class="view-toggle-btn" id="view-list" data-view="list" aria-pressed="false">List</button>
+          </div>
         </div>
         <div id="bookmark-mount"></div>
       </section>

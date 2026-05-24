@@ -16,7 +16,7 @@ CACHE_MINUTES = "30"
 PAGE_TITLE = "Start"
 # JSON map: Raindrop bookmark id or domain → icon URL or site path
 # e.g. {"github.com":"/icons/github.png","8492393":"https://example.com/icon.png"}
-ICON_OVERRIDES = "{}"
+ICON_OVERRIDES = '{"manage.wix.com":"/icons/wix.png", "homeassistant.local:8123":"/icons/ha-logo-blue.png", "4wv8a07rajlwpu0zrplpfscpxja1oqnq.ui.nabu.casa":"/icons/ha-logo-blue.png", "startpage-72s.pages.dev":"/icons/start-95.png"}'
 
 # Secret (set via dashboard or `wrangler secret put RAINDROP_ACCESS_TOKEN`):
 # RAINDROP_ACCESS_TOKEN
