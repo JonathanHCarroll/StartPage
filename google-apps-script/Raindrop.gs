@@ -70,7 +70,7 @@ function fetchBookmarks_(collectionId) {
   var data = raindropGet_('/raindrops/' + collectionId, {
     perpage: perpage,
     page: 0,
-    sort: 'title'
+    sort: '-sort'
   });
 
   return (data.items || [])
@@ -84,7 +84,8 @@ function fetchBookmarks_(collectionId) {
         excerpt: b.excerpt || '',
         cover: b.cover || '',
         type: b.type || 'link',
-        tags: b.tags || []
+        tags: b.tags || [],
+        order: typeof b.order === 'number' ? b.order : 0
       };
     });
 }
@@ -114,15 +115,15 @@ function listAllCollections_() {
   var children = raindropGet_('/collections/childrens');
   var all = dedupeCollectionsById_((roots.items || []).concat(children.items || []));
 
-  return all.map(function (c) {
+  return all.sort(function (a, b) {
+    return (b.sort || 0) - (a.sort || 0);
+  }).map(function (c) {
     return {
       id: c._id,
       title: c.title || ('Collection ' + c._id),
       color: c.color || '#5c7cfa',
       count: c.count || 0
     };
-  }).sort(function (a, b) {
-    return a.title.localeCompare(b.title);
   });
 }
 

@@ -14,9 +14,19 @@ COLLECTION_IDS = "54759553"
 BOOKMARKS_PER_PAGE = "50"
 CACHE_MINUTES = "30"
 PAGE_TITLE = "Start"
-# JSON map: Raindrop bookmark id or domain → icon URL or site path
-# e.g. {"github.com":"/icons/github.png","8492393":"https://example.com/icon.png"}
-ICON_OVERRIDES = '{"manage.wix.com":"/icons/wix.png", "homeassistant.local:8123":"/icons/ha-logo-blue.png", "4wv8a07rajlwpu0zrplpfscpxja1oqnq.ui.nabu.casa":"/icons/ha-logo-blue.png", "startpage-72s.pages.dev":"/icons/start-95.png"}'
+# JSON map: Raindrop bookmark id or domain → icon URL or site path.
+# Use a TOML multiline string (''' ... ''') so each entry can sit on its own line.
+ICON_OVERRIDES = '''
+{
+  "manage.wix.com": "/icons/wix.png",
+  "homeassistant.local:8123": "/icons/ha-logo-blue.png",
+  "4wv8a07rajlwpu0zrplpfscpxja1oqnq.ui.nabu.casa": "/icons/ha-logo-blue.png",
+  "startpage-72s.pages.dev": "/icons/start-95.png",
+  "docs.google.com": "https://cdn.jsdelivr.net/gh/selfhst/icons@main/webp/google-sheets.webp",
+  "script.google.com": "https://www.gstatic.com/script/apps_script_1x_48dp.png",
+  "github.com":"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/GitHub_Invertocat_Logo.svg/250px-GitHub_Invertocat_Logo.svg.png"
+}
+'''
 
 # Secret (set via dashboard or `wrangler secret put RAINDROP_ACCESS_TOKEN`):
 # RAINDROP_ACCESS_TOKEN

@@ -64,7 +64,7 @@ export async function fetchBookmarks(token, collectionId, perpage) {
   const data = await raindropGet(token, '/raindrops/' + collectionId, {
     perpage: perpage,
     page: 0,
-    sort: 'title'
+    sort: '-sort'
   });
 
   return (data.items || [])
@@ -78,7 +78,8 @@ export async function fetchBookmarks(token, collectionId, perpage) {
         excerpt: b.excerpt || '',
         cover: b.cover || '',
         type: b.type || 'link',
-        tags: b.tags || []
+        tags: b.tags || [],
+        order: typeof b.order === 'number' ? b.order : 0
       };
     });
 }
@@ -98,16 +99,18 @@ export async function listAllCollections(token) {
     }
   });
 
-  return Array.from(byId.values()).map(function (c) {
-    return {
-      id: c._id,
-      title: c.title || ('Collection ' + c._id),
-      color: c.color || '#5c7cfa',
-      count: c.count || 0
-    };
-  }).sort(function (a, b) {
-    return a.title.localeCompare(b.title);
-  });
+  return Array.from(byId.values())
+    .sort(function (a, b) {
+      return (b.sort || 0) - (a.sort || 0);
+    })
+    .map(function (c) {
+      return {
+        id: c._id,
+        title: c.title || ('Collection ' + c._id),
+        color: c.color || '#5c7cfa',
+        count: c.count || 0
+      };
+    });
 }
 
 /**

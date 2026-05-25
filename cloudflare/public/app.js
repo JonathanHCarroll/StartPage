@@ -1,6 +1,7 @@
 (function () {
   var STORAGE_KEY = 'startpage_collection_id';
   var VIEW_MODES_KEY = 'startpage_view_modes';
+  var SORT_MODES_KEY = 'startpage_sort_modes';
 
   function pad(n) {
     return n < 10 ? '0' + n : String(n);
@@ -126,6 +127,36 @@
     } catch (e) { /* ignore */ }
   }
 
+  function loadSortModes() {
+    try {
+      var raw = localStorage.getItem(SORT_MODES_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function getSortMode(collectionId) {
+    var modes = loadSortModes();
+    var mode = modes[String(collectionId)];
+    return mode === 'title' ? 'title' : 'manual';
+  }
+
+  function saveSortMode(collectionId, mode) {
+    try {
+      var modes = loadSortModes();
+      modes[String(collectionId)] = mode;
+      localStorage.setItem(SORT_MODES_KEY, JSON.stringify(modes));
+    } catch (e) { /* ignore */ }
+  }
+
+  function orderBookmarks(bookmarks, sortMode) {
+    if (sortMode !== 'title') return bookmarks;
+    return bookmarks.slice().sort(function (a, b) {
+      return (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base' });
+    });
+  }
+
   function renderBookmarks(container, bookmarks, viewMode) {
     container.innerHTML = '';
     if (!bookmarks.length) {
@@ -202,6 +233,8 @@
     var view = document.getElementById('collection-view');
     var viewGridBtn = document.getElementById('view-grid');
     var viewListBtn = document.getElementById('view-list');
+    var sortManualBtn = document.getElementById('sort-manual');
+    var sortTitleBtn = document.getElementById('sort-title');
 
     if (!mount || !picker || !trigger || !menu) return;
 
@@ -214,6 +247,7 @@
     var activeId = null;
     var activeCol = null;
     var viewMode = 'grid';
+    var sortMode = 'manual';
     var menuOpen = false;
     var loading = false;
 
@@ -248,8 +282,44 @@
       return allCollections.some(function (c) { return c.id === id; });
     }
 
+    function normalizeCollectionTitle(title) {
+      return String(title || '').trim().toLowerCase();
+    }
+
+    function collectionIdFromUrlParam(value) {
+      if (!value || !String(value).trim()) return null;
+
+      var trimmed = String(value).trim();
+      var numeric = parseInt(trimmed, 10);
+      if (!isNaN(numeric) && String(numeric) === trimmed) {
+        return hasCollectionId(numeric) ? numeric : null;
+      }
+
+      var needle = normalizeCollectionTitle(trimmed);
+      var matches = allCollections.filter(function (c) {
+        return normalizeCollectionTitle(c.title) === needle;
+      });
+      if (matches.length) return matches[0].id;
+
+      return null;
+    }
+
     function resolveActiveId() {
       try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+
+      var urlParam = null;
+      try {
+        urlParam = new URLSearchParams(window.location.search).get('collection');
+      } catch (e) { /* ignore */ }
+
+      if (urlParam) {
+        var fromUrl = collectionIdFromUrlParam(urlParam);
+        if (fromUrl != null) {
+          activeId = fromUrl;
+          return;
+        }
+      }
+
       var stored = sessionStorage.getItem(STORAGE_KEY);
       activeId = stored ? parseInt(stored, 10) : defaultId;
       if (!hasCollectionId(activeId)) {
@@ -290,6 +360,11 @@
       viewListBtn.setAttribute('aria-pressed', isGrid ? 'false' : 'true');
     }
 
+    function bookmarksForDisplay() {
+      if (!activeCol) return [];
+      return orderBookmarks(activeCol.bookmarks || [], sortMode);
+    }
+
     function setViewMode(mode, persist) {
       if (mode !== 'grid' && mode !== 'list') return;
       viewMode = mode;
@@ -298,7 +373,28 @@
         saveViewMode(activeId, mode);
       }
       if (activeCol) {
-        renderBookmarks(mount, activeCol.bookmarks || [], viewMode);
+        renderBookmarks(mount, bookmarksForDisplay(), viewMode);
+      }
+    }
+
+    function syncSortToggle() {
+      if (!sortManualBtn || !sortTitleBtn) return;
+      var isManual = sortMode === 'manual';
+      sortManualBtn.classList.toggle('is-active', isManual);
+      sortTitleBtn.classList.toggle('is-active', !isManual);
+      sortManualBtn.setAttribute('aria-pressed', isManual ? 'true' : 'false');
+      sortTitleBtn.setAttribute('aria-pressed', isManual ? 'false' : 'true');
+    }
+
+    function setSortMode(mode, persist) {
+      if (mode !== 'manual' && mode !== 'title') return;
+      sortMode = mode;
+      syncSortToggle();
+      if (persist && activeId != null) {
+        saveSortMode(activeId, mode);
+      }
+      if (activeCol) {
+        renderBookmarks(mount, bookmarksForDisplay(), viewMode);
       }
     }
 
@@ -366,9 +462,11 @@
       activeCol = col;
       sessionStorage.setItem(STORAGE_KEY, String(activeId));
       viewMode = getViewMode(activeId);
+      sortMode = getSortMode(activeId);
       syncViewToggle();
+      syncSortToggle();
       updateHeader(col);
-      renderBookmarks(mount, col.bookmarks || [], viewMode);
+      renderBookmarks(mount, orderBookmarks(col.bookmarks || [], sortMode), viewMode);
       renderMenu();
     }
 
@@ -426,6 +524,18 @@
       if (viewListBtn) {
         viewListBtn.addEventListener('click', function () {
           setViewMode('list', true);
+        });
+      }
+
+      if (sortManualBtn) {
+        sortManualBtn.addEventListener('click', function () {
+          setSortMode('manual', true);
+        });
+      }
+
+      if (sortTitleBtn) {
+        sortTitleBtn.addEventListener('click', function () {
+          setSortMode('title', true);
         });
       }
 
